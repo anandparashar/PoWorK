@@ -1,0 +1,44 @@
+package nonInteractiveProof;
+
+import java.math.*;
+import java.nio.ByteBuffer;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
+public class Knowledge {
+	
+	private static MessageDigest sha256digest ;
+	
+	/*
+	 * 	Returns the byte[] equivalent of the double
+	 */
+	public static byte[] toByteArray(double value) {
+	    byte[] bytes = new byte[8];
+	    ByteBuffer.wrap(bytes).putDouble(value);
+	    return bytes;
+	}
+	
+	/*
+	 * Returns the double equivalent of the byte[]
+	 */
+	public static double toDouble(byte[] bytes) {
+	    return ByteBuffer.wrap(bytes).getDouble();
+	}
+		
+	public static void provideProof(BigInteger y, BigInteger g) throws NoSuchAlgorithmException{
+		//get y from Zq
+		//g is the generator of Zq
+		try {
+			sha256digest = MessageDigest.getInstance("SHA-256");
+			double a = Math.pow(g.doubleValue(), y.doubleValue());
+			byte[] aHash = sha256digest.digest(toByteArray(a));
+			double c = toDouble(aHash);
+		}
+		 catch (NoSuchAlgorithmException e) {
+				throw e;
+			}
+			catch(Exception exp){
+				throw exp;
+			}
+	}
+}

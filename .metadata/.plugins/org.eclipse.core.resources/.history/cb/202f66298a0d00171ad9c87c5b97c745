@@ -1,0 +1,17 @@
+package globalResources;
+
+import java.math.BigInteger;
+
+public class Env_Variables {
+	/*
+	 * A class to store all the global variables that would be required across various classes of the application
+	 * @author Anand
+	 * 
+	 */
+	
+	//TO-DO: Change dummy values
+	public static final BigInteger g = BigInteger.ZERO;
+	public static final BigInteger q = BigInteger.ZERO;
+	public static final BigInteger x = BigInteger.ZERO;
+	public static final BigInteger w = BigInteger.ZERO;
+}

@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename package &apos;proof&apos; to &apos;nonInteractiveProof&apos;&#x0D;&#x0A;- Original project: &apos;PoWorK&apos;&#x0D;&#x0A;- Original element: &apos;PoWorK/src/main/java/proof&apos;&#x0D;&#x0A;- Renamed element: &apos;PoWorK/src/main/java/nonInteractiveProof&apos;&#x0D;&#x0A;- Update references to refactored element&#x0D;&#x0A;- Update textual occurrences in comments and strings" description="Rename package &apos;proof&apos;" flags="589830" hierarchical="false" id="org.eclipse.jdt.ui.rename.package" input="/src\/main\/java&lt;proof" name="nonInteractiveProof" qualified="false" references="true" stamp="1489971495121" textual="false" version="1.0"/>
+</session>

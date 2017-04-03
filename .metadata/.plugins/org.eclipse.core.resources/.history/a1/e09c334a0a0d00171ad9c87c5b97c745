@@ -1,0 +1,18 @@
+package nonInteractiveProof;
+
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
+public class Knowledge {
+	
+	public Knowledge(){
+		try {
+			MessageDigest sha256digest = MessageDigest.getInstance("SHA-256");
+		} catch (NoSuchAlgorithmException e) {
+			throw e;
+		}
+		catch(Exception exp){
+			throw exp;
+		}
+	}
+}

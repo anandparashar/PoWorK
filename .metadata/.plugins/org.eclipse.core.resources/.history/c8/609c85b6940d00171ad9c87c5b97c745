@@ -1,0 +1,17 @@
+package nonInteractiveProof;
+
+import java.math.BigInteger;
+import java.security.SecureRandom;
+
+public class Work {
+
+	/*
+	 * 	Returns a random BigInteger of 256 bits length
+	 */
+	public static BigInteger rand256(){
+		SecureRandom r = new SecureRandom();
+		return new BigInteger(256, r);
+	}
+	
+	
+}

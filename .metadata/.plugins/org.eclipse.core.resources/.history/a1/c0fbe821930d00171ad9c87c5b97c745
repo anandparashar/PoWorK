@@ -1,0 +1,42 @@
+package nonInteractiveVerification;
+
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
+
+public class Verification {
+	private Double a, c, cTilda, r, puz, sol;
+	private MessageDigest sha256digest;
+	
+	public Verification(HashMap<String, Double> message){
+		a= message.get("a");
+		c= message.get("c");
+		cTilda = message.get("cTilda");
+		r= message.get("r");
+		puz= message.get("puz");
+		sol = message.get("sol");
+	}
+	
+	private double getSHA256Hash(double ip) throws NoSuchAlgorithmException
+	{
+		try {
+			if(sha256digest==null)
+			{
+				sha256digest = MessageDigest.getInstance("SHA-256");
+			}
+			return toDouble(sha256digest.digest(toByteArray(ip))); 
+		}
+		 catch (NoSuchAlgorithmException e) {
+				throw e;
+			}
+			catch(Exception exp){
+				throw exp;
+			}
+	}
+	public Boolean verify(){
+		
+		if(c==)		
+		
+	}
+
+}

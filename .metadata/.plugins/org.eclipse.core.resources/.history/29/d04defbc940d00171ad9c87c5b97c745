@@ -1,0 +1,37 @@
+package nonInteractiveProof;
+
+import java.math.BigInteger;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+
+public class Work {
+
+	/*
+	 * 	Returns a random BigInteger of 256 bits length
+	 */
+	public static BigInteger rand256(){
+		SecureRandom r = new SecureRandom();
+		return new BigInteger(256, r);
+	}
+	
+	/*
+	 * 	TODO: Check and implement proper and efficiently
+	 */
+	private static double findPuzzle(Double sol) throws NoSuchAlgorithmException{
+		Double puz = new Double(0);
+		try {
+			while(getSHA256Hash(puz)!=sol){
+				puz++;
+			}
+			return puz;
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			throw e;
+		}
+		catch(Exception e)
+		{
+			throw e;
+		}
+	}
+	
+}

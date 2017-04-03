@@ -1,0 +1,9 @@
+package globalResources;
+
+public class Env_Variables {
+	/*
+	 * A class to store all the global variables that would be required across various classes of the application
+	 * @author Anand
+	 */
+
+}

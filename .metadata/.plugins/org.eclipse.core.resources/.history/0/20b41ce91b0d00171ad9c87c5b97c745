@@ -1,0 +1,29 @@
+package nonInteractiveProof;
+
+import java.math.*;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
+public class Knowledge {
+	
+	MessageDigest sha256digest = MessageDigest.getInstance("SHA-256"); ;
+	
+	public Knowledge() throws NoSuchAlgorithmException{
+		try {
+			
+		} catch (NoSuchAlgorithmException e) {
+			throw e;
+		}
+		catch(Exception exp){
+			throw exp;
+		}
+	}
+	
+	public static void provideProof(BigInteger y, BigInteger g){
+		//get y from Zq
+		//g is the generator of Zq
+		
+		double a = Math.pow(g.doubleValue(), y.doubleValue());
+		
+	}
+}
