@@ -1,0 +1,20 @@
+import static org.junit.Assert.*;
+
+import org.junit.Assert;
+import org.junit.Test;
+
+import nonInteractiveProof.Work;
+import nonInteractiveVerification.Verification;
+
+public class ProofOfWork {
+
+	@Test
+	public void test() {
+			Work work = new Work();
+		
+		
+			Verification verify = new Verification(work.provideProof());
+			Assert.assertEquals(true, verify.verify());
+	}
+
+}

@@ -1,23 +1,32 @@
 package nonInteractiveVerification;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 
 import globalResources.Env_Variables;
+import globalResources.GlobalResources;
 
 public class Verification {
-	private Double a, c, cTilda, r, puz, sol;
+	private BigInteger a, c, cTilda, r, puz, sol;
 	private MessageDigest sha256digest;
 	
-	public Verification(HashMap<String, Double> message){
+	public Verification(HashMap<String, BigInteger> message){
 		a= message.get("a");
+		System.out.println("a: "+a);
 		c= message.get("c");
+		System.out.println("c: "+c);
 		cTilda = message.get("cTilda");
+		System.out.println("cTilda: "+cTilda);
 		r= message.get("r");
+		System.out.println("r: "+r);
 		puz= message.get("puz");
+		System.out.println("puz: "+puz);
 		sol = message.get("sol");
+		System.out.println("sol: "+sol);
 	}
 	
 	/*
@@ -39,14 +48,15 @@ public class Verification {
 	/*
 	 * Finds SHA-256 Hash of supplied double input
 	 */
-	private double getSHA256Hash(double ip) throws NoSuchAlgorithmException
+	private BigInteger getSHA256Hash(BigInteger ip) throws NoSuchAlgorithmException
 	{
 		try {
 			if(sha256digest==null)
 			{
 				sha256digest = MessageDigest.getInstance("SHA-256");
 			}
-			return toDouble(sha256digest.digest(toByteArray(ip))); 
+			byte[] hash = sha256digest.digest(ip.toByteArray());
+			return new BigInteger(hash); 
 		}
 		 catch (NoSuchAlgorithmException e) {
 				throw e;
@@ -62,30 +72,46 @@ public class Verification {
 	public Boolean verify(){
 		
 		try {
-			if(c==getSHA256Hash(a))
+			if(c.equals(getSHA256Hash(a)))
 			{
-				
-				if(cTilda == Double.longBitsToDouble(Double.doubleToRawLongBits(c)^Double.doubleToRawLongBits(puz)))
+				System.out.println("C=H(a)");
+				if(cTilda.equals(c.xor(puz)))
 				{
-					double lhs = Math.pow(Env_Variables.g.doubleValue(), r);
-					double xRaisedcTilda=Math.pow(Env_Variables.x.doubleValue(), cTilda);
-					double rhs = xRaisedcTilda*a;
-					if(lhs == rhs)
+					System.out.println("cTilda = c XOR puz");
+					
+					if(puz.equals(getSHA256Hash(sol)))
 					{
-						if(puz==getSHA256Hash(sol))
+						System.out.println("puz=H(sol)");
+						
+						BigInteger lhs = GlobalResources.env_vars.Exponentiate(r); //g^r
+						System.out.println("g^r :"+lhs);
+						
+						//BigInteger cTildaModQ= cTilda.mod(GlobalResources.env_vars.getQ());
+						//System.out.println("CTildaModQ :"+cTildaModQ);
+						
+						BigInteger xRaisedcTilda=GlobalResources.env_vars.ExponentiateMToN(GlobalResources.env_vars.getxElement(), cTilda);
+						
+						BigInteger rhs = a.multiply(xRaisedcTilda);
+						rhs=rhs.mod(GlobalResources.env_vars.getP());
+						System.out.println("(a * x^cTilda) :"+rhs);
+						
+						if(lhs.equals(rhs))
 						{
+							System.out.println("lhs == rhs");
+							System.out.println("True");
 							return true;
 						}
 					}	
 				}
 			}
+			System.out.println("False");
 			return false;
 		}
-		catch (NoSuchAlgorithmException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return false;
-		}
+//		catch (NoSuchAlgorithmException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//			return false;
+//		}
 		catch(Exception e)
 		{
 			e.printStackTrace();

@@ -8,6 +8,7 @@ import java.security.SecureRandom;
 import java.util.HashMap;
 
 import globalResources.Env_Variables;
+import globalResources.GlobalResources;
 
 public class Knowledge {
 	
@@ -37,14 +38,14 @@ public class Knowledge {
 		return new BigInteger(256, r);
 	}
 	
-	private static double getSHA256Hash(double ip) throws NoSuchAlgorithmException
+	private static BigInteger getSHA256Hash(BigInteger ip) throws NoSuchAlgorithmException
 	{
 		try {
 			if(sha256digest==null)
 			{
 				sha256digest = MessageDigest.getInstance("SHA-256");
 			}
-			return toDouble(sha256digest.digest(toByteArray(ip))); 
+			return new BigInteger(sha256digest.digest(ip.toByteArray())); 
 		}
 		 catch (NoSuchAlgorithmException e) {
 				throw e;
@@ -54,58 +55,81 @@ public class Knowledge {
 			}
 	}
 		
-	public static HashMap<String, Double> provideProof(BigInteger y, BigInteger g) throws NoSuchAlgorithmException{
-		HashMap<String, Double> messageDict = new HashMap<String, Double>();
+	public static HashMap<String, BigInteger> provideProof() throws NoSuchAlgorithmException{
+		HashMap<String, BigInteger> messageDict = new HashMap<String, BigInteger>();
 		//get y from Zq
 		//g is the generator of Zq
+		BigInteger g = GlobalResources.env_vars.getG();
+		BigInteger y = GlobalResources.env_vars.createRandomElementInGroup();
+		System.out.println("y :"+y);
 		try {
-			double a = Math.pow(g.doubleValue(), y.doubleValue());
-			System.out.println("************************************************************************************************\n");
+			BigInteger a = (GlobalResources.env_vars.Exponentiate(y)).mod(GlobalResources.env_vars.getP());
+			System.out.println("************************************************************************************************");
 			System.out.println("a :"+a);
 			System.out.println("************************************************************************************************\n");
 			messageDict.put("a", a);
+		
 			
-			double c = getSHA256Hash(a);
+			BigInteger c = getSHA256Hash(a);
 			messageDict.put("c", c);
-			System.out.println("************************************************************************************************\n");
+			System.out.println("************************************************************************************************");
 			System.out.println("c :"+c);
 			System.out.println("************************************************************************************************\n");
 			
-			//Generate Random Solution of 256 bits
-			//TODO: Check and implement proper and efficient generation
-			//It might include determining the difficulty according to hashing power available
-			//and creating puzzle ofe appropriate difficulty
-			double sol = rand256().doubleValue();
+//			//Generate Random Solution of 256 bits
+//			//TODO: Check and implement proper and efficient generation
+//			//It might include determining the difficulty according to hashing power available
+//			//and creating puzzle of appropriate difficulty
+			BigInteger sol = rand256();
 			messageDict.put("sol", sol);
-			System.out.println("************************************************************************************************\n");
+			System.out.println("************************************************************************************************");
 			System.out.println("Random Solution generated to be :"+sol);
 			System.out.println("************************************************************************************************\n");
-			
-			double puz = getSHA256Hash(sol);
+//			
+			BigInteger puz = getSHA256Hash(sol);
 			messageDict.put("puz", puz);
-			System.out.println("************************************************************************************************\n");
+			System.out.println("************************************************************************************************");
 			System.out.println("Puz found to be :"+puz);
 			System.out.println("************************************************************************************************\n");
-			
-			double cTilda = Double.longBitsToDouble(Double.doubleToRawLongBits(c)^Double.doubleToRawLongBits(puz));
+//			
+			BigInteger cTilda = c.xor(puz);
 			messageDict.put("cTilda", cTilda);
-			System.out.println("************************************************************************************************\n");
+			System.out.println("************************************************************************************************");
 			System.out.println("cTilda :"+cTilda);
 			System.out.println("************************************************************************************************\n");
+//			
+			BigInteger w = GlobalResources.env_vars.getW();
+			BigInteger q = GlobalResources.env_vars.getQ();
+			BigInteger mul = cTilda.multiply(w);
+			System.out.println("CTilda*w :"+mul);
+			//exp=exp.mod(q);
+			//System.out.println("CTilda*w.Modq :"+exp);
 			
-			double rTilda= y.doubleValue()+ ((cTilda*Env_Variables.w.doubleValue())%Env_Variables.q.doubleValue());
+			BigInteger rTilda= y.add(mul);
+			rTilda  = rTilda.mod(q);
+			
 			messageDict.put("r", rTilda);
-			System.out.println("************************************************************************************************\n");
+			System.out.println("************************************************************************************************");
 			System.out.println("rTilda :"+rTilda);
 			System.out.println("************************************************************************************************\n");
-			
+//			
 			return messageDict;			
 		}
 		 catch (NoSuchAlgorithmException e) {
 				throw e;
 			}
-			catch(Exception exp){
+		catch(Exception exp){
 				throw exp;
-			}
+		}
+	}
+	
+	public static void main(String args[]){
+		Knowledge know = new Knowledge();
+		try {
+			know.provideProof();
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }

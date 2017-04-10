@@ -1,0 +1,7 @@
+package globalResources;
+
+public class GlobalResources {
+	
+	Env_Variables env_vars = new Env_Variables();
+
+}

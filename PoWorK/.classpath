@@ -5,6 +5,11 @@
 			<attribute name="FROM_GRADLE_MODEL" value="true"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry including="CryptoPPJavaInterface.dll|LibscapiJavaInterface.dll|MaliciousOtExtensionJavaInterface.dll|MaliciousYaoUtil.dll|MiraclJavaInterface.dll|NTLJavaInterface.dll|OpenSSLJavaInterface.dll|OtExtensionJavaInterface.dll|ScGarbledCircuitJavaInterface.dll|ScGarbledCircuitNoFixedKeyJavaInterface.dll" kind="src" path="lib">
+		<attributes>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="D:/Study/CS-795BlockchainTechnologies/PoWorK/PoWorK/lib"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="src" path="src/test/java">
 		<attributes>
 			<attribute name="FROM_GRADLE_MODEL" value="true"/>
@@ -12,5 +17,13 @@
 	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
 	<classpathentry kind="con" path="org.eclipse.buildship.core.gradleclasspathcontainer"/>
+	<classpathentry kind="lib" path="D:/Study/CS-795BlockchainTechnologies/scapi/assets/activemq-all-5.9.1.jar"/>
+	<classpathentry kind="lib" path="D:/Study/CS-795BlockchainTechnologies/scapi/assets/commons-exec-1.2.jar"/>
+	<classpathentry kind="lib" path="D:/Study/CS-795BlockchainTechnologies/scapi/assets/Scapi-2.4.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="file:/D:/Study/CS-795BlockchainTechnologies/scapi/doc/javadoc/SCAPI-V2-4-0/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="D:/Study/CS-795BlockchainTechnologies/scapi/assets/bcprov-jdk16-146.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

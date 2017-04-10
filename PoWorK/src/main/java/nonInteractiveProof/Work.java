@@ -1,5 +1,6 @@
 package nonInteractiveProof;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
@@ -8,6 +9,7 @@ import java.security.SecureRandom;
 import java.util.HashMap;
 
 import globalResources.Env_Variables;
+import globalResources.GlobalResources;
 
 public class Work {
 
@@ -18,7 +20,7 @@ public class Work {
 	 */
 	private static BigInteger rand256(){
 		SecureRandom r = new SecureRandom();
-		return new BigInteger(256, r);
+		return new BigInteger(2, r);
 	}
 	
 	/*
@@ -40,14 +42,14 @@ public class Work {
 	/*
 	 *	Finds SHA-256 Hash of supplied double input
 	 */
-	private static double getSHA256Hash(double ip) throws NoSuchAlgorithmException
+	private static BigInteger getSHA256Hash(BigInteger ip) throws NoSuchAlgorithmException
 	{
 		try {
 			if(sha256digest==null)
 			{
 				sha256digest = MessageDigest.getInstance("SHA-256");
 			}
-			return toDouble(sha256digest.digest(toByteArray(ip))); 
+			return new BigInteger(sha256digest.digest(ip.toByteArray()));
 		}
 		 catch (NoSuchAlgorithmException e) {
 				throw e;
@@ -60,11 +62,15 @@ public class Work {
 	/*
 	 * 	TODO: Check and implement proper and efficiently
 	 */
-	private static double findSol(Double puz) throws NoSuchAlgorithmException{
-		Double sol = new Double(0);
+	private static BigInteger findSol(BigInteger puz) throws NoSuchAlgorithmException{
+		BigInteger sol = BigInteger.ZERO;
 		try {
-			while(getSHA256Hash(puz)!=puz){
-				sol++;
+			BigInteger hash =getSHA256Hash(sol);
+			while(!hash.equals(puz))
+			{
+				sol=sol.add(BigInteger.ONE);
+				hash =getSHA256Hash(sol);
+				//System.out.println("hash :"+hash);
 			}
 			return sol;
 		} catch (NoSuchAlgorithmException e) {
@@ -82,40 +88,44 @@ public class Work {
 	}
 	
 	
-	public static HashMap<String, Double> provideProof(BigInteger y, BigInteger g) throws NoSuchAlgorithmException{
-		HashMap<String, Double> messageDict = new HashMap<String, Double>();
+	public HashMap<String, BigInteger> provideProof() throws NoSuchAlgorithmException{
+		HashMap<String, BigInteger> messageDict = new HashMap<String, BigInteger>();
 		
-		double cTilda = rand256().doubleValue();
+		BigInteger g = GlobalResources.env_vars.getG();
+//		BigInteger y = GlobalResources.env_vars.createRandomGroupElement();
+		
+		BigInteger cTilda = rand256();
 		messageDict.put("cTilda", cTilda);
 		System.out.println("************************************************************************************************\n");
 		System.out.println("cTilda :"+cTilda);
 		System.out.println("************************************************************************************************\n");
 		
-		double r = rand256().doubleValue();
+		BigInteger r = rand256();
 		messageDict.put("r", r);
 		System.out.println("************************************************************************************************\n");
 		System.out.println("r :"+r);
 		System.out.println("************************************************************************************************\n");
-		
-		double a = Math.pow(Env_Variables.g.doubleValue(), r)/(Math.pow(Env_Variables.x.doubleValue(), cTilda));
+		BigInteger gR = GlobalResources.env_vars.Exponentiate(r);
+		BigInteger xC = GlobalResources.env_vars.ExponentiateMToN(GlobalResources.env_vars.getxElement(), cTilda);
+		BigInteger a = gR.divide(xC);
 		messageDict.put("a", a);
 		System.out.println("************************************************************************************************\n");
 		System.out.println("a :"+a);
 		System.out.println("************************************************************************************************\n");
 		
-		double c = getSHA256Hash(a);
+		BigInteger c = getSHA256Hash(a);
 		messageDict.put("c", c);
 		System.out.println("************************************************************************************************\n");
 		System.out.println("c :"+c);
 		System.out.println("************************************************************************************************\n");
 		
-		double puz = doubleXOR(c, cTilda);
+		BigInteger puz = c.xor(cTilda);
 		messageDict.put("puz", puz);
 		System.out.println("************************************************************************************************\n");
 		System.out.println("Puz :"+puz);
 		System.out.println("************************************************************************************************\n");
 		
-		double sol = findSol(puz);
+		BigInteger sol = findSol(puz);
 		messageDict.put("sol", sol);
 		System.out.println("************************************************************************************************\n");
 		System.out.println("sol found out to be :"+sol);
