@@ -1,5 +1,9 @@
 package globalResources;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.SecureRandom;
@@ -7,6 +11,7 @@ import java.security.SecureRandom;
 import org.apache.activemq.console.command.CreateCommand;
 import org.bouncycastle.util.BigIntegers;
 
+import blockchain.BlockChain;
 import edu.biu.scapi.primitives.*;
 import edu.biu.scapi.primitives.dlog.*;
 import edu.biu.scapi.primitives.dlog.groupParams.GroupParams;
@@ -15,13 +20,24 @@ import edu.biu.scapi.primitives.dlog.openSSL.OpenSSLDlogECF2m;
 import edu.biu.scapi.primitives.dlog.openSSL.OpenSSLDlogZpSafePrime;
 import edu.biu.scapi.primitives.dlog.openSSL.OpenSSLZpSafePrimeElement;
 
+
+/**
+ * A class to store all the global variables that would be required across various classes of the application
+ * @author Anand
+ * 
+ */
 public class Env_Variables {
-	/*
-	 * A class to store all the global variables that would be required across various classes of the application
-	 * @author Anand
-	 * 
-	 */
 	
+	/**
+	 * BlockChain File path
+	 */
+	private String filepath = null;
+	public BlockChain mainChain = new BlockChain();
+	
+	//Proof
+	private BigInteger throttle = new BigInteger("10000");
+	
+	//DLOG 
 	private BigInteger g ;
 	private BigInteger q ;
 	private BigInteger p ;
@@ -78,6 +94,7 @@ public class Env_Variables {
 			System.out.println("x: "+x);
 			System.out.println("xElement :"+xElement);
 			
+			
 			System.out.println("End of ENV_VARIABLES initalization");
 //			// exponentiate g in r to receive a new group element
 //			GroupElement g1 = dlog.exponentiate(grpElement, createRandomExponentInGroup());
@@ -91,6 +108,7 @@ public class Env_Variables {
 			e.printStackTrace();
 		}
 	}
+	
 	
 	public BigInteger createRandomElementInGroup()
 	{
@@ -125,6 +143,74 @@ public class Env_Variables {
 		GroupElement exp= dlog.exponentiate(x, y);
 		return getIntegerFromGroupELement(exp);
 	}
+	
+	public GroupElement convertToGroupElement(BigInteger ele){
+		return dlog.generateElement(false, ele);
+	}
+	
+	
+	/**
+	 * Tries to find {@link BlockChain} file at the specified path.
+	 * If not found, checks default location {@link "/resources/BlockChain/BlockChain.txt"},
+	 * else, returns false indicating a request to peers for it.
+	 * If file is found, Blocks from the file are added to the {@link mainChain}
+	 * @param fileName
+	 * @return true if file is found, false if not. If file is found at default location,  {@link filePath} is updated.
+	 */
+	public boolean checkBlockChain(String fileName){
+		Boolean chainFound = false;
+		try{
+			
+			File file = new File(fileName);
+			
+			if(file.exists())
+			{
+				FileReader fr = new FileReader(file);
+				BufferedReader br = new BufferedReader(fr);
+				
+				String sCurrentLine;
+				
+				if((sCurrentLine = br.readLine())==null){
+					return false;
+				}
+				else{
+					mainChain.addBlock(sCurrentLine.getBytes());
+				}
+
+				while ((sCurrentLine = br.readLine()) != null) {
+					mainChain.addBlock(sCurrentLine.getBytes());
+				}
+				return true;
+			}
+			else
+			{
+				throw new FileNotFoundException();
+			}	
+		}
+		catch(FileNotFoundException fe)
+		{
+			if(!fileName.equalsIgnoreCase("/resources/BlockChain/BlockChain.txt")){
+				System.out.println("BlockChain not found at file path"+fileName);
+				fileName = "/resources/BlockChain/BlockChain.txt";
+				System.out.println("Checking at default location"+fileName);
+				chainFound = checkBlockChain(fileName);
+				if(chainFound){
+					this.filepath="/resources/BlockChain/BlockChain.txt";
+				}
+			}
+			else
+			{
+				System.out.println("BlockChain Not found at default location, checking with peers");
+				return false;
+			}
+			
+		}
+		catch (IOException e) {
+			e.printStackTrace();
+		}
+		return chainFound;
+	}
+	
 	
 	//************************************************Crude Test************************************************************************
 	
@@ -163,6 +249,22 @@ public class Env_Variables {
 	
 	public GroupElement getxElement() {
 		return xElement;
+	}
+
+	public String getFilepath() {
+		return filepath;
+	}
+
+	public void setFilepath(String filepath) {
+		this.filepath = filepath;
+	}
+
+	public BigInteger getThrottle() {
+		return throttle;
+	}
+
+	public void setThrottle(BigInteger throttle) {
+		this.throttle = throttle;
 	}
 }
 

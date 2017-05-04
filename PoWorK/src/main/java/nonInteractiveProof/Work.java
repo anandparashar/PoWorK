@@ -8,7 +8,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.HashMap;
 
-import globalResources.Env_Variables;
 import globalResources.GlobalResources;
 
 public class Work {
@@ -20,27 +19,31 @@ public class Work {
 	 */
 	private static BigInteger rand256(){
 		SecureRandom r = new SecureRandom();
-		return new BigInteger(2, r);
+		BigInteger rand = new BigInteger(256, r);
+		while(rand.equals(BigInteger.ZERO)){
+			rand = new BigInteger(256, r);
+		}
+		return rand;
 	}
 	
 	/*
 	 * 	Returns the byte[] equivalent of the double
-	 */
+	 
 	private static byte[] toByteArray(double value) {
 	    byte[] bytes = new byte[8];
 	    ByteBuffer.wrap(bytes).putDouble(value);
 	    return bytes;
-	}
+	}*/
 	
 	/*
 	 * Returns the double equivalent of the byte[]
-	 */
+	 
 	private static double toDouble(byte[] bytes) {
 	    return ByteBuffer.wrap(bytes).getDouble();
-	}
+	}*/
 	
 	/*
-	 *	Finds SHA-256 Hash of supplied double input
+	 *	Finds SHA-256 Hash of supplied BigInteger input
 	 */
 	private static BigInteger getSHA256Hash(BigInteger ip) throws NoSuchAlgorithmException
 	{
@@ -59,18 +62,44 @@ public class Work {
 			}
 	}
 	
+	private BigInteger getSHA256Hash(BigDecimal ip) throws NoSuchAlgorithmException
+	{
+		try {
+			if(sha256digest==null)
+			{
+				sha256digest = MessageDigest.getInstance("SHA-256");
+			}
+			byte[] hash = sha256digest.digest(ip.unscaledValue().toByteArray());
+			BigDecimal deci = new BigDecimal(new BigInteger(1, hash));
+//			return new BigInteger(hash); 
+			return deci.unscaledValue();
+		}
+		 catch (NoSuchAlgorithmException e) {
+				throw e;
+			}
+			catch(Exception exp){
+				throw exp;
+			}
+	}
+	
 	/*
 	 * 	TODO: Check and implement proper and efficiently
 	 */
 	private static BigInteger findSol(BigInteger puz) throws NoSuchAlgorithmException{
-		BigInteger sol = BigInteger.ZERO;
+//		BigInteger sol = BigInteger.ZERO;
+		BigInteger sol = new BigInteger("0");
+		BigInteger throttle = GlobalResources.env_vars.getThrottle();
+		//making it easy
+		puz = puz.divide(throttle);
+		System.out.println("Throttled: "+puz);
 		try {
-			BigInteger hash =getSHA256Hash(sol);
-			while(!hash.equals(puz))
+			BigInteger hash=getSHA256Hash(sol);
+			while(hash.abs().compareTo(puz.abs())>0)
 			{
 				sol=sol.add(BigInteger.ONE);
+//				System.out.println("trying: "+sol);
 				hash =getSHA256Hash(sol);
-				//System.out.println("hash :"+hash);
+//				System.out.println("hash :"+hash.abs());
 			}
 			return sol;
 		} catch (NoSuchAlgorithmException e) {
@@ -88,49 +117,83 @@ public class Work {
 	}
 	
 	
-	public HashMap<String, BigInteger> provideProof() throws NoSuchAlgorithmException{
-		HashMap<String, BigInteger> messageDict = new HashMap<String, BigInteger>();
-		
+	public Proof provideProof() throws NoSuchAlgorithmException{
+		System.out.println("Running");
+//		HashMap<String, BigInteger> messageDict = new HashMap<String, BigInteger>();
+		Proof proof = new Proof();
 		BigInteger g = GlobalResources.env_vars.getG();
-//		BigInteger y = GlobalResources.env_vars.createRandomGroupElement();
+		BigInteger x = GlobalResources.env_vars.getX();
 		
 		BigInteger cTilda = rand256();
-		messageDict.put("cTilda", cTilda);
+//		messageDict.put("cTilda", cTilda);
+		proof.cTilda=cTilda;
 		System.out.println("************************************************************************************************\n");
 		System.out.println("cTilda :"+cTilda);
 		System.out.println("************************************************************************************************\n");
 		
 		BigInteger r = rand256();
-		messageDict.put("r", r);
+//		messageDict.put("r", r);
+		proof.r=r;
 		System.out.println("************************************************************************************************\n");
 		System.out.println("r :"+r);
 		System.out.println("************************************************************************************************\n");
 		BigInteger gR = GlobalResources.env_vars.Exponentiate(r);
 		BigInteger xC = GlobalResources.env_vars.ExponentiateMToN(GlobalResources.env_vars.getxElement(), cTilda);
+		System.out.println("gR: "+gR);
+		System.out.println("xC: "+xC);
 		BigInteger a = gR.divide(xC);
-		messageDict.put("a", a);
+		BigDecimal aDec;
+
+		BigDecimal gRDec = new BigDecimal(gR);
+		BigDecimal xCDec = new BigDecimal(xC);
+		aDec = gRDec.divide(xCDec,10, BigDecimal.ROUND_HALF_UP);
+//		System.out.println("a: "+aDec);
+//		a = aDec.toBigInteger();
+		
+//		messageDict.put("a", a);
+		proof.a = aDec;
 		System.out.println("************************************************************************************************\n");
-		System.out.println("a :"+a);
+		System.out.println("a :"+aDec);
 		System.out.println("************************************************************************************************\n");
 		
-		BigInteger c = getSHA256Hash(a);
-		messageDict.put("c", c);
+		BigInteger c = getSHA256Hash(aDec);
+//		messageDict.put("c", c);
+		proof.c=c;
 		System.out.println("************************************************************************************************\n");
 		System.out.println("c :"+c);
 		System.out.println("************************************************************************************************\n");
 		
 		BigInteger puz = c.xor(cTilda);
-		messageDict.put("puz", puz);
+//		messageDict.put("puz", puz);
+		proof.puz=puz;
 		System.out.println("************************************************************************************************\n");
 		System.out.println("Puz :"+puz);
 		System.out.println("************************************************************************************************\n");
 		
 		BigInteger sol = findSol(puz);
-		messageDict.put("sol", sol);
+//		messageDict.put("sol", sol);
+		proof.sol=sol;
 		System.out.println("************************************************************************************************\n");
 		System.out.println("sol found out to be :"+sol);
 		System.out.println("************************************************************************************************\n");
+		proof.g = g;
+		proof.x = x;
+		return proof;
+	}
+	
+	public static void main(String args[])
+	{
+		BigInteger sol = BigInteger.TEN;
 		
-		return messageDict;
+		try {
+			System.out.println(getSHA256Hash(sol));
+			
+			sol = sol.negate();
+			
+			System.out.println(getSHA256Hash(sol));
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }

@@ -2,6 +2,7 @@ package nonInteractiveVerification;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.MathContext;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -9,24 +10,32 @@ import java.util.HashMap;
 
 import globalResources.Env_Variables;
 import globalResources.GlobalResources;
+import nonInteractiveProof.Proof;
 
+/**
+ * @author anand
+ *
+ */
 public class Verification {
-	private BigInteger a, c, cTilda, r, puz, sol;
+	private BigInteger c, cTilda, r, puz, sol, throttle, g, x;
+	private BigDecimal a;
 	private MessageDigest sha256digest;
 	
-	public Verification(HashMap<String, BigInteger> message){
-		a= message.get("a");
+	public Verification(Proof proof){
+		a= proof.a;
 		System.out.println("a: "+a);
-		c= message.get("c");
+		c= proof.c;
 		System.out.println("c: "+c);
-		cTilda = message.get("cTilda");
+		cTilda = proof.cTilda;
 		System.out.println("cTilda: "+cTilda);
-		r= message.get("r");
+		r= proof.r;
 		System.out.println("r: "+r);
-		puz= message.get("puz");
+		puz= proof.puz;
 		System.out.println("puz: "+puz);
-		sol = message.get("sol");
+		sol = proof.sol;
 		System.out.println("sol: "+sol);
+		g=proof.g;
+		x=proof.x;
 	}
 	
 	/*
@@ -46,7 +55,7 @@ public class Verification {
 	}
 	
 	/*
-	 * Finds SHA-256 Hash of supplied double input
+	 * Finds SHA-256 Hash of supplied BigInteger input
 	 */
 	private BigInteger getSHA256Hash(BigInteger ip) throws NoSuchAlgorithmException
 	{
@@ -66,11 +75,34 @@ public class Verification {
 			}
 	}
 	
+	private BigInteger getSHA256Hash(BigDecimal ip) throws NoSuchAlgorithmException
+	{
+		try {
+			if(sha256digest==null)
+			{
+				sha256digest = MessageDigest.getInstance("SHA-256");
+			}
+			byte[] hash = sha256digest.digest(ip.unscaledValue().toByteArray());
+			BigDecimal deci = new BigDecimal(new BigInteger(1, hash));
+//			return new BigInteger(hash); 
+			return deci.unscaledValue();
+		}
+		 catch (NoSuchAlgorithmException e) {
+				throw e;
+			}
+			catch(Exception exp){
+				throw exp;
+			}
+	}
+	
 	/*
 	 * Verify if the Non-Interactive proof verifies
 	 */
+	/**
+	 * @return
+	 */
 	public Boolean verify(){
-		
+		System.out.println("In Verification");
 		try {
 			if(c.equals(getSHA256Hash(a)))
 			{
@@ -78,24 +110,29 @@ public class Verification {
 				if(cTilda.equals(c.xor(puz)))
 				{
 					System.out.println("cTilda = c XOR puz");
-					
-					if(puz.equals(getSHA256Hash(sol)))
+					BigInteger puzThrottled = puz.divide(puz);
+					if((puz.equals(getSHA256Hash(sol))) || (getSHA256Hash(sol).compareTo(puzThrottled)<=0))
 					{
 						System.out.println("puz=H(sol)");
 						
-						BigInteger lhs = GlobalResources.env_vars.Exponentiate(r); //g^r
+						BigInteger lhs = GlobalResources.env_vars.ExponentiateMToN(GlobalResources.env_vars.convertToGroupElement(g), r); //g^r
 						System.out.println("g^r :"+lhs);
 						
-						//BigInteger cTildaModQ= cTilda.mod(GlobalResources.env_vars.getQ());
-						//System.out.println("CTildaModQ :"+cTildaModQ);
+						BigInteger xRaisedcTilda=GlobalResources.env_vars.ExponentiateMToN(GlobalResources.env_vars.convertToGroupElement(x), cTilda);
+						System.out.println("xraisedCTilda: "+ xRaisedcTilda);
+						System.out.println("xraisedCTilda Dec: "+ new BigDecimal(xRaisedcTilda));
+						BigDecimal rhs = a.multiply(new BigDecimal(xRaisedcTilda));
 						
-						BigInteger xRaisedcTilda=GlobalResources.env_vars.ExponentiateMToN(GlobalResources.env_vars.getxElement(), cTilda);
+						System.out.println("a * x^cTilda: "+rhs);
 						
-						BigInteger rhs = a.multiply(xRaisedcTilda);
-						rhs=rhs.mod(GlobalResources.env_vars.getP());
-						System.out.println("(a * x^cTilda) :"+rhs);
+						BigDecimal rhsrem=rhs.remainder(new BigDecimal(GlobalResources.env_vars.getP()));
+						System.out.println("(a * x^cTilda) rem:"+rhsrem);
 						
-						if(lhs.equals(rhs))
+						MathContext mc = new MathContext(10); 
+						BigInteger rhsRounded = rhsrem.round(mc).toBigInteger();
+						System.out.println("Rounded: "+rhsRounded);
+						
+						if(lhs.equals(rhsRounded))
 						{
 							System.out.println("lhs == rhs");
 							System.out.println("True");
