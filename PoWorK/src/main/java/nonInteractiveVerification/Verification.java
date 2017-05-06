@@ -22,6 +22,7 @@ public class Verification {
 	private MessageDigest sha256digest;
 	
 	public Verification(Proof proof){
+		System.out.println("***********");
 		a= proof.a;
 		System.out.println("a: "+a);
 		c= proof.c;
@@ -36,6 +37,7 @@ public class Verification {
 		System.out.println("sol: "+sol);
 		g=proof.g;
 		x=proof.x;
+		System.out.println("***********");
 	}
 	
 	/*
@@ -119,14 +121,14 @@ public class Verification {
 						System.out.println("g^r :"+lhs);
 						
 						BigInteger xRaisedcTilda=GlobalResources.env_vars.ExponentiateMToN(GlobalResources.env_vars.convertToGroupElement(x), cTilda);
-						System.out.println("xraisedCTilda: "+ xRaisedcTilda);
-						System.out.println("xraisedCTilda Dec: "+ new BigDecimal(xRaisedcTilda));
+//						System.out.println("xraisedCTilda: "+ xRaisedcTilda);
+//						System.out.println("xraisedCTilda Dec: "+ new BigDecimal(xRaisedcTilda));
 						BigDecimal rhs = a.multiply(new BigDecimal(xRaisedcTilda));
 						
-						System.out.println("a * x^cTilda: "+rhs);
+//						System.out.println("a * x^cTilda: "+rhs);
 						
 						BigDecimal rhsrem=rhs.remainder(new BigDecimal(GlobalResources.env_vars.getP()));
-						System.out.println("(a * x^cTilda) rem:"+rhsrem);
+//						System.out.println("(a * x^cTilda) rem:"+rhsrem);
 						
 						MathContext mc = new MathContext(10); 
 						BigInteger rhsRounded = rhsrem.round(mc).toBigInteger();

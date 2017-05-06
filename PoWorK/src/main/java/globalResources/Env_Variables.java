@@ -2,15 +2,18 @@ package globalResources;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 
 import org.apache.activemq.console.command.CreateCommand;
 import org.bouncycastle.util.BigIntegers;
 
+import blockchain.Block;
 import blockchain.BlockChain;
 import edu.biu.scapi.primitives.*;
 import edu.biu.scapi.primitives.dlog.*;
@@ -32,10 +35,11 @@ public class Env_Variables {
 	 * BlockChain File path
 	 */
 	private String filepath = null;
+	private String filename = "BlockChain.ser";
 	public BlockChain mainChain = new BlockChain();
 	
 	//Proof
-	private BigInteger throttle = new BigInteger("10000");
+	private BigInteger throttle = new BigInteger("100000");
 	
 	//DLOG 
 	private BigInteger g ;
@@ -150,36 +154,43 @@ public class Env_Variables {
 	
 	
 	/**
+	 * 
+	 * DO NOT USE FOR NOW. Java.math.BigDecimal class throwing deserialization error
+	 * 
 	 * Tries to find {@link BlockChain} file at the specified path.
-	 * If not found, checks default location {@link "/resources/BlockChain/BlockChain.txt"},
+	 * If not found, checks default location {@link "/resources/BlockChain/"},
 	 * else, returns false indicating a request to peers for it.
 	 * If file is found, Blocks from the file are added to the {@link mainChain}
-	 * @param fileName
+	 * @param filePath
 	 * @return true if file is found, false if not. If file is found at default location,  {@link filePath} is updated.
 	 */
-	public boolean checkBlockChain(String fileName){
+	public boolean checkBlockChain(String filePath){
 		Boolean chainFound = false;
 		try{
 			
-			File file = new File(fileName);
+			File file = new File(filePath+this.filename);
 			
 			if(file.exists())
 			{
-				FileReader fr = new FileReader(file);
-				BufferedReader br = new BufferedReader(fr);
+				FileInputStream fr = new FileInputStream(file);
+				ObjectInputStream br = new ObjectInputStream(fr);
 				
-				String sCurrentLine;
-				
-				if((sCurrentLine = br.readLine())==null){
-					return false;
-				}
-				else{
-					mainChain.addBlock(sCurrentLine.getBytes());
-				}
-
-				while ((sCurrentLine = br.readLine()) != null) {
-					mainChain.addBlock(sCurrentLine.getBytes());
-				}
+				Block blck1 = (Block) br.readObject();
+				Block blck2 = (Block) br.readObject();
+				System.out.println("Read: "+blck1.getIndex());
+				System.out.println("Read: "+blck2.getIndex());
+//				String sCurrentLine;
+//				
+//				if((sCurrentLine = br.readLine())==null){
+//					return false;
+//				}
+//				else{
+//					mainChain.addBlock(sCurrentLine.getBytes());
+//				}
+//
+//				while ((sCurrentLine = br.readLine()) != null) {
+//					mainChain.addBlock(sCurrentLine.getBytes());
+//				}
 				return true;
 			}
 			else
@@ -189,13 +200,13 @@ public class Env_Variables {
 		}
 		catch(FileNotFoundException fe)
 		{
-			if(!fileName.equalsIgnoreCase("/resources/BlockChain/BlockChain.txt")){
-				System.out.println("BlockChain not found at file path"+fileName);
-				fileName = "/resources/BlockChain/BlockChain.txt";
-				System.out.println("Checking at default location"+fileName);
-				chainFound = checkBlockChain(fileName);
+			if(!filePath.equalsIgnoreCase("./resources/BlockChain/")){
+				System.out.println("BlockChain not found at file path"+filePath);
+				filePath = "./resources/BlockChain/";
+				System.out.println("Checking at default location"+filePath);
+				chainFound = checkBlockChain(filePath);
 				if(chainFound){
-					this.filepath="/resources/BlockChain/BlockChain.txt";
+					this.filepath="./resources/BlockChain/";
 				}
 			}
 			else
@@ -207,6 +218,9 @@ public class Env_Variables {
 		}
 		catch (IOException e) {
 			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		return chainFound;
 	}
@@ -217,8 +231,9 @@ public class Env_Variables {
 	public static void main(String args[])
 	{
 		Env_Variables env = new Env_Variables();
-		BigInteger y = env.createRandomGroupElement();
-		env.Exponentiate(y);
+		env.setFilepath("./resources/BlockChain/"+env.filename);
+		System.out.println(env.checkBlockChain(env.getFilepath()));
+		env.mainChain.toString();
 	}
 	
 	//**********************************************************************************************************************************
@@ -265,6 +280,14 @@ public class Env_Variables {
 
 	public void setThrottle(BigInteger throttle) {
 		this.throttle = throttle;
+	}
+
+	public String getFilename() {
+		return filename;
+	}
+
+	public void setFilename(String filename) {
+		this.filename = filename;
 	}
 }
 

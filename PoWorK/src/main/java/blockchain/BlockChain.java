@@ -14,9 +14,7 @@ public class BlockChain {
 	public void addBlock(byte[] blckByteArray)
 	{
 		try 
-		{
-			writeToFile(blckByteArray);
-			
+		{	
 			Block blck = Block.deserialize(blckByteArray);
 			
 			if(blockChain.add(blck))
@@ -29,7 +27,7 @@ public class BlockChain {
 					}
 				}
 			}
-			
+			writeToFile(blckByteArray);
 		}
 		catch(IOException e)
 		{
@@ -52,7 +50,7 @@ public class BlockChain {
 		try 
 		{
 			
-			File file = new File(GlobalResources.env_vars.getFilepath());
+			File file = new File(GlobalResources.env_vars.getFilepath()+GlobalResources.env_vars.getFilename());
 			
 			if(!file.exists())
 			{
@@ -103,6 +101,11 @@ public class BlockChain {
 			e.printStackTrace();
 			return false;
 		}
+	}
+
+	@Override
+	public String toString() {
+		return "BlockChain [blockChain=" + blockChain + "]";
 	}
 
 }

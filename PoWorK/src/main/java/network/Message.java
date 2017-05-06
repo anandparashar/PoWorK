@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 
 import blockchain.Block;
 import blockchain.BlockChain;
@@ -18,7 +19,7 @@ import transaction.Transaction;
  * @author Anand
  *
  */
-public class Message {
+public class Message implements Serializable{
 	private msgType messageType=null;
 	private contentType content = null;
 	public enum msgType{
@@ -121,5 +122,55 @@ public class Message {
 		{
 			throw e;
 		}
+	}
+
+
+	public msgType getMessageType() {
+		return messageType;
+	}
+
+
+	public void setMessageType(msgType messageType) {
+		this.messageType = messageType;
+	}
+
+
+	public contentType getContent() {
+		return content;
+	}
+
+
+	public void setContent(contentType content) {
+		this.content = content;
+	}
+
+
+	public Block getBlock() {
+		return block;
+	}
+
+
+	public void setBlock(Block block) {
+		this.block = block;
+	}
+
+
+	public BlockChain getChain() {
+		return chain;
+	}
+
+
+	public void setChain(BlockChain chain) {
+		this.chain = chain;
+	}
+
+
+	public Transaction getTx() {
+		return tx;
+	}
+
+
+	public void setTx(Transaction tx) {
+		this.tx = tx;
 	}
 }

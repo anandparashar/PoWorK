@@ -8,6 +8,7 @@ import java.util.Arrays;
 import org.bouncycastle.asn1.cms.Time;
 
 import nonInteractiveProof.Proof;
+import nonInteractiveProof.Work;
 import nonInteractiveVerification.Verification;
 
 import java.io.ByteArrayInputStream;
@@ -23,11 +24,13 @@ import java.io.Serializable;
  */
 public class Block implements Serializable{
 	
+//	private static final long serialVersionUID = 1L;
+	
 	@Override
 	public String toString() {
-		return "Block [index=" + index + ", prevBlockhashPointer=" + new String(prevBlockhashPointer)
-				+ ", timestamp=" + timestamp + ", merkelRootHash=" + new String(merkelRootHash)
-				+ ", currentBlockHash=" + new String(currentBlockHash) + ", poWorK=" + poWorK.toString() + "]";
+		return "Block [index=" + index + ", prevBlockhashPointer=" + Arrays.toString(prevBlockhashPointer)
+				+ ", timestamp=" + timestamp + ", merkelRootHash=" + Arrays.toString(merkelRootHash)
+				+ ", currentBlockHash=" + Arrays.toString(currentBlockHash) + ", poWorK=" + poWorK.toString() + "]";
 	}
 
 	private BigInteger index;
@@ -236,21 +239,48 @@ public class Block implements Serializable{
 		return true;
 	}
 
+	/**
+	 * Checks validity of {@link currBlock} w.r.t {@link prevBlock}. 
+	 * Also, verifies {@link Proof} for {@link currBlock}. See, {@link Verification.verify} for more.
+	 * @param currBlock
+	 * @param prevBlock
+	 * @return
+	 */
 	public static boolean isBlockvalid(Block currBlock, Block prevBlock){
-		if(currBlock.getIndex().equals(prevBlock.getIndex().add(BigInteger.ONE)))
-		{
-			if(Arrays.equals(currBlock.getPrevBlockhashPointer(), prevBlock.getCurrentBlockHash()))
-			{
-				try {
-					if(Arrays.equals(Block.hashCode(currBlock), currBlock.getCurrentBlockHash()))
-					{
-						if(new Verification(currBlock.poWorK).verify()){
-							return true;
+		
+		if (prevBlock != null) {
+			if (currBlock.getIndex().equals(prevBlock.getIndex().add(BigInteger.ONE))) {
+				if (Arrays.equals(currBlock.getPrevBlockhashPointer(), prevBlock.getCurrentBlockHash())) {
+					try {
+						if (Arrays.equals(Block.hashCode(currBlock), currBlock.getCurrentBlockHash())) {
+							if (new Verification(currBlock.poWorK).verify()) {
+								return true;
+							}
 						}
+					} catch (NoSuchAlgorithmException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
 					}
-				} catch (NoSuchAlgorithmException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+				}
+			}
+			return false;
+		}
+		else{
+			System.out.println("Checking Genesis Block");
+			//check if genesis block is valid
+			if(currBlock.getIndex().equals(BigInteger.ZERO)){
+				System.out.println("Index valid");
+				if(Arrays.equals(currBlock.getPrevBlockhashPointer(),BigInteger.ZERO.toByteArray())){
+					try {
+						if(Arrays.equals(Block.hashCode(currBlock), currBlock.getCurrentBlockHash())){
+							if (new Verification(currBlock.poWorK).verify()) {
+								return true;
+							}
+						}
+					} catch (NoSuchAlgorithmException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				}
 			}
 		}
@@ -259,7 +289,13 @@ public class Block implements Serializable{
 
 	public static void main(String[] args) {
 		
-		Block blck = new Block(BigInteger.ONE, new byte[10], "431243857", new byte[10], new Proof());
+		Block blck=null;
+		try {
+			blck = new Block(BigInteger.ONE, new byte[10], "431243857", new byte[10], new Work().provideProof());
+		} catch (NoSuchAlgorithmException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 
 		try {
 			byte[] serializedBlock = Block.serialize(blck);
@@ -270,9 +306,10 @@ public class Block implements Serializable{
 			}
 			
 			Block deBlock = Block.deserialize(serializedBlock);
-			System.out.println("De-Serialized: ");
+			System.out.println("\n De-Serialized: ");
 			System.out.println(deBlock.getIndex());
 			System.out.println(deBlock.getTimestamp());
+			System.out.println(deBlock.poWorK.toString());
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

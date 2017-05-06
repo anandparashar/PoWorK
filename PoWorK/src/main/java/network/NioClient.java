@@ -82,8 +82,8 @@ public class NioClient implements Runnable {
     }
     
     
-    public void send(InetAddress host, int port , byte[] data, RspHandler handler) throws IOException {
-		SocketChannel channel = init(this.hostAddress, this.hostPort);
+    public void send(SocketChannel channel, byte[] data, RspHandler handler) throws IOException {
+//		SocketChannel channel = init(this.hostAddress, this.hostPort);
 		// Register the response handler
 		this.rspHandlers.put(channel, handler);
 		
@@ -96,7 +96,7 @@ public class NioClient implements Runnable {
 			}
 			queue.add(ByteBuffer.wrap(data));
 		}
-
+		System.out.println("Sending...1");
 		// Finally, wake up our selecting thread so it can make the required changes
 		this.selector.wakeup();
 	}
@@ -205,6 +205,7 @@ public class NioClient implements Runnable {
 				key.interestOps(SelectionKey.OP_READ);
 			}
 		}
+		System.out.println("Sending...2");
 	}
 	
 	private void read(SelectionKey key) throws IOException{
@@ -276,8 +277,8 @@ public class NioClient implements Runnable {
 			t.setDaemon(true);
 			t.start();
 			RspHandler handler = new RspHandler();
-			
-			client.send(InetAddress.getByName("120.0.0.1"), 1111, "Hello".getBytes(), handler);
+			SocketChannel channel = client.init(InetAddress.getByName("192.168.0.23"), 1111);
+			client.send(channel, "Hello".getBytes(), handler);
 			handler.waitForResponse();
 			
 		}

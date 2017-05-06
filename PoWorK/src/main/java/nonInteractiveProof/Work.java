@@ -127,20 +127,20 @@ public class Work {
 		BigInteger cTilda = rand256();
 //		messageDict.put("cTilda", cTilda);
 		proof.cTilda=cTilda;
-		System.out.println("************************************************************************************************\n");
-		System.out.println("cTilda :"+cTilda);
-		System.out.println("************************************************************************************************\n");
+//		System.out.println("************************************************************************************************\n");
+//		System.out.println("cTilda :"+cTilda);
+//		System.out.println("************************************************************************************************\n");
 		
 		BigInteger r = rand256();
 //		messageDict.put("r", r);
 		proof.r=r;
-		System.out.println("************************************************************************************************\n");
-		System.out.println("r :"+r);
-		System.out.println("************************************************************************************************\n");
+//		System.out.println("************************************************************************************************\n");
+//		System.out.println("r :"+r);
+//		System.out.println("************************************************************************************************\n");
 		BigInteger gR = GlobalResources.env_vars.Exponentiate(r);
 		BigInteger xC = GlobalResources.env_vars.ExponentiateMToN(GlobalResources.env_vars.getxElement(), cTilda);
-		System.out.println("gR: "+gR);
-		System.out.println("xC: "+xC);
+//		System.out.println("gR: "+gR);
+//		System.out.println("xC: "+xC);
 		BigInteger a = gR.divide(xC);
 		BigDecimal aDec;
 
@@ -152,30 +152,30 @@ public class Work {
 		
 //		messageDict.put("a", a);
 		proof.a = aDec;
-		System.out.println("************************************************************************************************\n");
-		System.out.println("a :"+aDec);
-		System.out.println("************************************************************************************************\n");
+//		System.out.println("************************************************************************************************\n");
+//		System.out.println("a :"+aDec);
+//		System.out.println("************************************************************************************************\n");
 		
 		BigInteger c = getSHA256Hash(aDec);
 //		messageDict.put("c", c);
 		proof.c=c;
-		System.out.println("************************************************************************************************\n");
-		System.out.println("c :"+c);
-		System.out.println("************************************************************************************************\n");
+//		System.out.println("************************************************************************************************\n");
+//		System.out.println("c :"+c);
+//		System.out.println("************************************************************************************************\n");
 		
 		BigInteger puz = c.xor(cTilda);
 //		messageDict.put("puz", puz);
 		proof.puz=puz;
-		System.out.println("************************************************************************************************\n");
+//		System.out.println("************************************************************************************************\n");
 		System.out.println("Puz :"+puz);
-		System.out.println("************************************************************************************************\n");
+//		System.out.println("************************************************************************************************\n");
 		
 		BigInteger sol = findSol(puz);
 //		messageDict.put("sol", sol);
 		proof.sol=sol;
-		System.out.println("************************************************************************************************\n");
-		System.out.println("sol found out to be :"+sol);
-		System.out.println("************************************************************************************************\n");
+//		System.out.println("************************************************************************************************\n");
+//		System.out.println("sol found out to be :"+sol);
+//		System.out.println("************************************************************************************************\n");
 		proof.g = g;
 		proof.x = x;
 		return proof;

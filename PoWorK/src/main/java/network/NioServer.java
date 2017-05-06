@@ -5,6 +5,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
 import java.util.ArrayList;
@@ -49,8 +50,9 @@ public class NioServer implements Runnable{
 			this.serverChannel = ServerSocketChannel.open();
 			serverChannel.configureBlocking(false);
 			
-//			InetSocketAddress socketAddress= new InetSocketAddress(this.hostAddress, this.port);
-			InetSocketAddress serverSocketAddress= new InetSocketAddress("localhost", this.port);
+			InetSocketAddress serverSocketAddress= new InetSocketAddress(this.hostAddress, this.port);
+//			InetSocketAddress serverSocketAddress= new InetSocketAddress("localhost", this.port);
+			System.out.println(serverSocketAddress.getHostName());
 			serverChannel.socket().bind(serverSocketAddress);
 			
 			serverChannel.register(this.selector, SelectionKey.OP_ACCEPT);
@@ -154,6 +156,10 @@ public class NioServer implements Runnable{
 //			        this.bytesRead = numBytes;
 			        System.out.println("Bytes Read "+numBytes);
 //			        System.out.println("Read: "+new String(this.buffer.array()));
+			        Message recMsg = Message.deserialize(this.buffer.array());
+			        System.out.println("Message received"+recMsg.getMessageType()+" "+recMsg.getContent());
+			        System.out.println("Block"+recMsg.getBlock().toString());
+			        
 			        // TODO - Add processing of data
 			        // Hand the data off to our worker thread
 			        // check if data received is Block, BlockChain, Transaction
@@ -167,6 +173,12 @@ public class NioServer implements Runnable{
 			e.printStackTrace();
 			key.channel().close();
 	        key.cancel();
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	    
 	    
@@ -236,8 +248,17 @@ public class NioServer implements Runnable{
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		NioServer server = new NioServer(null, 1111);
-		Thread t = new Thread(server);
-		t.start();
+		NioServer server;
+		try 
+		{
+			
+			server = new NioServer(InetAddress.getByName("192.168.0.23"), 1111);
+			Thread t = new Thread(server);
+			t.start();
+			
+		} catch (UnknownHostException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }
