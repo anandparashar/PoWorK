@@ -22,22 +22,23 @@ public class Verification {
 	private MessageDigest sha256digest;
 	
 	public Verification(Proof proof){
-		System.out.println("***********");
+//		System.out.println("***********");
 		a= proof.a;
-		System.out.println("a: "+a);
+//		System.out.println("a: "+a);
 		c= proof.c;
-		System.out.println("c: "+c);
+//		System.out.println("c: "+c);
 		cTilda = proof.cTilda;
-		System.out.println("cTilda: "+cTilda);
+//		System.out.println("cTilda: "+cTilda);
 		r= proof.r;
-		System.out.println("r: "+r);
+//		System.out.println("r: "+r);
 		puz= proof.puz;
-		System.out.println("puz: "+puz);
+//		System.out.println("puz: "+puz);
 		sol = proof.sol;
-		System.out.println("sol: "+sol);
+//		System.out.println("sol: "+sol);
 		g=proof.g;
 		x=proof.x;
-		System.out.println("***********");
+		throttle = GlobalResources.env_vars.getThrottle();
+//		System.out.println("***********");
 	}
 	
 	/*
@@ -112,13 +113,13 @@ public class Verification {
 				if(cTilda.equals(c.xor(puz)))
 				{
 					System.out.println("cTilda = c XOR puz");
-					BigInteger puzThrottled = puz.divide(puz);
+					BigInteger puzThrottled = puz.divide(throttle);
 					if((puz.equals(getSHA256Hash(sol))) || (getSHA256Hash(sol).compareTo(puzThrottled)<=0))
 					{
 						System.out.println("puz=H(sol)");
 						
 						BigInteger lhs = GlobalResources.env_vars.ExponentiateMToN(GlobalResources.env_vars.convertToGroupElement(g), r); //g^r
-						System.out.println("g^r :"+lhs);
+//						System.out.println("g^r :"+lhs);
 						
 						BigInteger xRaisedcTilda=GlobalResources.env_vars.ExponentiateMToN(GlobalResources.env_vars.convertToGroupElement(x), cTilda);
 //						System.out.println("xraisedCTilda: "+ xRaisedcTilda);
@@ -132,11 +133,11 @@ public class Verification {
 						
 						MathContext mc = new MathContext(10); 
 						BigInteger rhsRounded = rhsrem.round(mc).toBigInteger();
-						System.out.println("Rounded: "+rhsRounded);
+//						System.out.println("Rounded: "+rhsRounded);
 						
 						if(lhs.equals(rhsRounded))
 						{
-							System.out.println("lhs == rhs");
+//							System.out.println("lhs == rhs");
 							System.out.println("True");
 							return true;
 						}

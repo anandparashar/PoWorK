@@ -22,6 +22,9 @@ import edu.biu.scapi.primitives.dlog.groupParams.ZpGroupParams;
 import edu.biu.scapi.primitives.dlog.openSSL.OpenSSLDlogECF2m;
 import edu.biu.scapi.primitives.dlog.openSSL.OpenSSLDlogZpSafePrime;
 import edu.biu.scapi.primitives.dlog.openSSL.OpenSSLZpSafePrimeElement;
+import mining.MiningManager;
+import network.NioClient;
+import network.NioServer;
 
 
 /**
@@ -30,7 +33,10 @@ import edu.biu.scapi.primitives.dlog.openSSL.OpenSSLZpSafePrimeElement;
  * 
  */
 public class Env_Variables {
-	
+	public NioServer globalServer = null;
+	public NioClient globalClient = null;
+	public Thread miningThread = null;
+	public MiningManager manager = null;
 	/**
 	 * BlockChain File path
 	 */
@@ -39,7 +45,7 @@ public class Env_Variables {
 	public BlockChain mainChain = new BlockChain();
 	
 	//Proof
-	private BigInteger throttle = new BigInteger("100000");
+	private BigInteger throttle = new BigInteger("100000000");
 	
 	//DLOG 
 	private BigInteger g ;

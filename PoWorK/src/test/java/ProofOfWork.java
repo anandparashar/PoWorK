@@ -18,8 +18,12 @@ public class ProofOfWork {
 			Verification verify;
 			try
 			{
-				verify = new Verification(work.provideProof());
-				Assert.assertEquals(true, verify.verify());
+				int count = 0;
+//				while(count<100){
+					verify = new Verification(work.provideProof());
+					Assert.assertEquals(true, verify.verify());
+					count++;
+//				}
 			}
 			catch (NoSuchAlgorithmException e) {
 				// TODO Auto-generated catch block

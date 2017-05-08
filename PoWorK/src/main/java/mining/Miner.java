@@ -2,8 +2,11 @@ package mining;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import blockchain.Block;
 import globalResources.GlobalResources;
@@ -12,13 +15,17 @@ import network.NioServer;
 import network.Message;
 import network.Message.contentType;
 import network.Message.msgType;
+import network.MessageProcessor;
 import network.RspHandler;
 import nonInteractiveProof.Knowledge;
 import nonInteractiveProof.Proof;
 import nonInteractiveProof.Work;
 import nonInteractiveVerification.Verification;
 
-public class Miner {
+public class Miner implements Runnable{
+	
+	Block prevBlock = null;
+	 
 	
 	private type minerType = type.WORK;
 	private Work pow;
@@ -110,7 +117,6 @@ public class Miner {
 		
 		Block newBlock = new Block(BigInteger.ZERO, BigInteger.ZERO.toByteArray(), Long.toString(time), rand256().toByteArray(), proof);
 		
-		
 		System.out.println("Genesis Block Generated: "+newBlock.toString());
 		return newBlock;
 	}
@@ -146,54 +152,125 @@ public class Miner {
 //		System.out.println("Is Block Valid?"+Block.isBlockvalid(newBlock, prevBlock));
 		return newBlock;
 	}
+	
+	public void stopMining(){
+		try {
+			synchronized (Thread.currentThread()){
+			Thread.currentThread().wait();
+			}
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 
+	@SuppressWarnings("deprecation")
 	public static void main(String[] args) {
 
 		try 
 		{
-			NioServer server = new NioServer(InetAddress.getByName("192.168.0.23"), 1111);
-			Thread tserver = new Thread(server);
-			tserver.start();
-					
-			NioClient client = new NioClient();
-			Thread tclient = new Thread(client);
-			tclient.setDaemon(true);
-			tclient.start();
-			RspHandler handler = new RspHandler();
-					
+//			MessageProcessor processor = new MessageProcessor();
+//			new Thread(processor).start();
+//			NioServer server = new NioServer(InetAddress.getByName("192.168.0.23"), 1111, processor);
+//			Thread tserver = new Thread(server);
+//			tserver.start();
+//					
+//			NioClient client = new NioClient();
+//			Thread tclient = new Thread(client);
+//			tclient.setDaemon(true);
+//			tclient.start();
 			GlobalResources.env_vars.setFilepath("./resources/BlockChain/");
 			
-			Miner miner = new Miner(type.WORK);
+			
+			Miner miner = new Miner(type.KNOWLEDGE);
+			
 			Block genesisBlock = miner.generateGenesisBlock();
 			if(Block.isBlockvalid(genesisBlock, null))
 			{
-				System.out.println("Sending Block");
-				Message msg = new Message(msgType.BROADCAST, contentType.BLOCK, genesisBlock);
-				client.send(client.init(InetAddress.getByName("192.168.0.23"), 1111), Message.serialize(msg), handler);
+//				System.out.println("Sending Block");
+//				RspHandler handler = new RspHandler();
+//				Message msg = new Message(msgType.BROADCAST, contentType.BLOCK, genesisBlock);
+//				client.send(client.init(InetAddress.getByName("192.168.0.23"), 1111), Message.serialize(msg), handler);
 //				handler.waitForResponse();
-				GlobalResources.env_vars.mainChain.addBlock(Block.serialize(genesisBlock));
+				GlobalResources.env_vars.mainChain.addBlock(genesisBlock);
 				
 			}
-//			
-			Block newBlock = miner.generateBlock(genesisBlock);
-			if(Block.isBlockvalid(newBlock, genesisBlock))
-			{
-				System.out.println("Sending Block");
-				Message msg = new Message(msgType.BROADCAST, contentType.BLOCK, genesisBlock);
-				client.send(client.init(InetAddress.getByName("192.168.0.23"), 1111), Message.serialize(msg), handler);
-//				handler.waitForResponse();
-				GlobalResources.env_vars.mainChain.addBlock(Block.serialize(newBlock));
-				
-			}
+					
+			
+//			Block newBlock = miner.generateBlock(genesisBlock);
+//			if(Block.isBlockvalid(newBlock, genesisBlock))
+//			{
+////				System.out.println("Sending Block");
+////				RspHandler handler = new RspHandler();
+////				Message msg = new Message(msgType.BROADCAST, contentType.BLOCK, genesisBlock);
+////				client.send(client.init(InetAddress.getByName("192.168.0.23"), 1111), Message.serialize(msg), handler);
+////				handler.waitForResponse();
+//				GlobalResources.env_vars.mainChain.addBlock(newBlock);
+//				
+//			}
+			
+//			Message msg = new Message(msgType.REQUEST, contentType.BLOCKCHAIN);
+//			RspHandler handler = new RspHandler();
+//			client.send(client.init(InetAddress.getByName("192.168.0.23"), 1111), Message.serialize(msg), handler);
+//			handler.waitForResponse();
+			System.out.println("Done");
 			
 			
 			
-		
-		} catch (IOException e) {
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+	}
+
+	@Override
+	public void run() {
+		// TODO Auto-generated method stub
+		while(true){
+			Block prevBlock = GlobalResources.env_vars.mainChain.getLastBlock();
+			
+			NioClient client = GlobalResources.env_vars.globalClient;
+			
+			if(prevBlock != null)
+			{
+				Block newBlock = generateBlock(prevBlock);
+				if(Block.isBlockvalid(newBlock, prevBlock))
+				{
+					RspHandler handler = new RspHandler();
+					Message msg = new Message(msgType.BROADCAST, contentType.BLOCK, newBlock);		
+					try {
+						client.send(client.init(InetAddress.getByName("192.168.0.23"), 1111), Message.serialize(msg), handler);
+					} catch (UnknownHostException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					GlobalResources.env_vars.mainChain.addBlock(newBlock);
+				}
+			}
+			else
+			{
+				System.out.println("First Block");
+				Block genesisBlock = generateGenesisBlock();
+				if(Block.isBlockvalid(genesisBlock, null))
+				{
+					RspHandler handler = new RspHandler();
+					Message msg = new Message(msgType.BROADCAST, contentType.BLOCK, genesisBlock);
+					try {
+						client.send(client.init(InetAddress.getByName("192.168.0.23"), 1111), Message.serialize(msg), handler);
+					} catch (UnknownHostException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					GlobalResources.env_vars.mainChain.addBlock(genesisBlock);
+				}
+			}
+		}
 	}
 
 }

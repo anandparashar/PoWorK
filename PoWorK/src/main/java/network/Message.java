@@ -33,6 +33,16 @@ public class Message implements Serializable{
 	private Block block=null;
 	private BlockChain chain = null;
 	private Transaction tx = null;
+
+	/**
+	 * Constructor to request anything
+	 * @param msgType
+	 * @param cnt
+	 */
+	public Message(msgType msgType, contentType cnt){
+		this.messageType = msgType;
+		this.content = cnt;
+	}
 	
 	/**
 	 * Constructor to transmit a {@link Block}

@@ -144,7 +144,8 @@ public class NioClient implements Runnable {
 				e.printStackTrace();
 			} catch (Exception e) {
 				e.printStackTrace();
-			} 
+			}
+			
 		}
 	}
 

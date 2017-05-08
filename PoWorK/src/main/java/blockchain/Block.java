@@ -286,6 +286,21 @@ public class Block implements Serializable{
 		}
 		return false;
 	}
+	
+	public static Boolean isBlockValidIsolated(Block currBlock){
+		try {
+			if(Arrays.equals(Block.hashCode(currBlock), currBlock.getCurrentBlockHash())){
+				if (new Verification(currBlock.poWorK).verify()) {
+					return true;
+				}
+			}
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return false;
+		}
+		return false;
+	}
 
 	public static void main(String[] args) {
 		

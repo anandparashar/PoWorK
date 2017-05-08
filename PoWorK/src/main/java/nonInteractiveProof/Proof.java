@@ -20,7 +20,7 @@ public class Proof implements Serializable{
 	public BigInteger sol;
 	public BigInteger x;
 	public BigInteger g;
-//	BigInteger p;
+	public BigInteger throttle;
 	
 //	private static final long serialVersionUID = 2L;
 	

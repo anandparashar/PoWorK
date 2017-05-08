@@ -90,8 +90,10 @@ public class Work {
 		BigInteger sol = new BigInteger("0");
 		BigInteger throttle = GlobalResources.env_vars.getThrottle();
 		//making it easy
+		System.out.println("Number of bits before throttling:"+ puz.bitLength());
 		puz = puz.divide(throttle);
 		System.out.println("Throttled: "+puz);
+		System.out.println("Number of bits after throttling:"+ puz.bitLength());
 		try {
 			BigInteger hash=getSHA256Hash(sol);
 			while(hash.abs().compareTo(puz.abs())>0)
@@ -101,6 +103,8 @@ public class Work {
 				hash =getSHA256Hash(sol);
 //				System.out.println("hash :"+hash.abs());
 			}
+			System.out.println("Solution: "+sol);
+			System.out.println("Hash: "+hash.abs());
 			return sol;
 		} catch (NoSuchAlgorithmException e) {
 			// TODO Auto-generated catch block
@@ -118,7 +122,9 @@ public class Work {
 	
 	
 	public Proof provideProof() throws NoSuchAlgorithmException{
+		
 		System.out.println("Running");
+		long startTime = System.currentTimeMillis();
 //		HashMap<String, BigInteger> messageDict = new HashMap<String, BigInteger>();
 		Proof proof = new Proof();
 		BigInteger g = GlobalResources.env_vars.getG();
@@ -178,6 +184,9 @@ public class Work {
 //		System.out.println("************************************************************************************************\n");
 		proof.g = g;
 		proof.x = x;
+		long endTime = System.currentTimeMillis();
+		long timeTaken = endTime-startTime;
+		System.out.println("Time Taken: "+ timeTaken/60000.0+ " minutes.");
 		return proof;
 	}
 	

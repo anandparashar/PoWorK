@@ -21,6 +21,7 @@ public class NioServer implements Runnable{
 //	private static final org.slf4j.Logger log = LoggerFactory.getLogger(NioServer.class);
 	private InetAddress hostAddress = null;
 	private int port;
+	private MessageProcessor processor = null;
 	private ServerSocketChannel serverChannel = null;
     private Selector selector = null;
     private ByteBuffer buffer = ByteBuffer.allocate(8192);
@@ -42,8 +43,9 @@ public class NioServer implements Runnable{
      * @param portNum - A valid port value is between 0 and 65535. A port number of zero will let 
      * 	the system pick up an ephemeral port in a bind operation. 
      */
-    public NioServer(InetAddress host, int portNum){
+    public NioServer(InetAddress host, int portNum, MessageProcessor processor){
     	try {
+    		this.processor = processor;
     		this.hostAddress = host;
     		this.port=portNum;
 			this.selector = Selector.open();
@@ -107,6 +109,13 @@ public class NioServer implements Runnable{
 								System.out.println("Readable");
 								read(selectedKey);
 							}
+							else
+							{
+								if (selectedKey.isWritable()) {
+									System.out.println("Writable");
+									this.write(selectedKey);
+								}
+							}
 						}
 							
 					}
@@ -140,7 +149,7 @@ public class NioServer implements Runnable{
 	 * @throws IOException 
 	 */
 	private void read(SelectionKey key) throws IOException{
-	    int numBytes;
+	    int numBytes=0;
 	    SocketChannel c = (SocketChannel) key.channel();
 	 
 	    this.buffer.clear();
@@ -158,8 +167,8 @@ public class NioServer implements Runnable{
 //			        System.out.println("Read: "+new String(this.buffer.array()));
 			        Message recMsg = Message.deserialize(this.buffer.array());
 			        System.out.println("Message received"+recMsg.getMessageType()+" "+recMsg.getContent());
-			        System.out.println("Block"+recMsg.getBlock().toString());
-			        
+//			        System.out.println("BlockChain"+recMsg.getChain().toString());
+//			        this.processor.processData(this, c, this.buffer.array(), numBytes);
 			        // TODO - Add processing of data
 			        // Hand the data off to our worker thread
 			        // check if data received is Block, BlockChain, Transaction
@@ -173,6 +182,7 @@ public class NioServer implements Runnable{
 			e.printStackTrace();
 			key.channel().close();
 	        key.cancel();
+	        return;
 		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -180,19 +190,27 @@ public class NioServer implements Runnable{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-	    
-	    
+	    if (numBytes == -1) {
+			// Remote entity shut the socket down cleanly. Do the
+			// same from our end and cancel the channel.
+			key.channel().close();
+			key.cancel();
+			return;
+		}
+	    this.processor.processData(this, c, this.buffer.array(), numBytes);
 	}
 
 	public void send(SocketChannel socket, byte[] data) {
 		synchronized (this.pendingChanges) {
 			// Indicate we want the interest ops set changed
+//			System.out.println("Creating pending changes");
 			this.pendingChanges.add(new ChangeRequest(socket, ChangeRequest.CHANGEOPS, SelectionKey.OP_WRITE));
 
 			// And queue the data we want written
 			synchronized (this.pendingData) {
 				List queue = (List) this.pendingData.get(socket);
 				if (queue == null) {
+//					System.out.println("queue null");
 					queue = new ArrayList();
 					this.pendingData.put(socket, queue);
 				}
@@ -205,6 +223,7 @@ public class NioServer implements Runnable{
 	}
 	
 	private void write(SelectionKey key) throws IOException{
+		System.out.println("In Write");
 		SocketChannel socketChannel = (SocketChannel) key.channel();
 
 		synchronized (this.pendingData) {
@@ -251,8 +270,9 @@ public class NioServer implements Runnable{
 		NioServer server;
 		try 
 		{
-			
-			server = new NioServer(InetAddress.getByName("192.168.0.23"), 1111);
+			MessageProcessor processor = new MessageProcessor();
+			new Thread(processor).start();
+			server = new NioServer(InetAddress.getByName("192.168.0.23"), 1111, processor);
 			Thread t = new Thread(server);
 			t.start();
 			
