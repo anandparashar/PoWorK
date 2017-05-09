@@ -21,6 +21,8 @@ public class Proof implements Serializable{
 	public BigInteger x;
 	public BigInteger g;
 	public BigInteger throttle;
+	public BigInteger p;
+	public BigInteger q;
 	
 //	private static final long serialVersionUID = 2L;
 	

@@ -79,24 +79,48 @@ public class MessageProcessor implements Runnable{
 		//Current Block in chain
 		Block currBlock = GlobalResources.env_vars.mainChain.getLastBlock();
 
-		//If the index of the currentBlock in our view is less than the index of the received block, process received block.
-		// else received block is ignored.
-		if(currBlock.getIndex().compareTo(recBlock.getIndex()) <= 0){
-			Boolean isRecBlockValid = Block.isBlockvalid(recBlock, currBlock);
-			if(isRecBlockValid || !isRecBlockValid){
+		if (currBlock != null) {
+			System.out.println("A current Block exists");
+			//If the index of the currentBlock in our view is less than the index of the received block, process received block.
+			// else received block is ignored.
+			if (currBlock.getIndex().compareTo(recBlock.getIndex()) < 0) {
+				Boolean isRecBlockValid = Block.isBlockvalid(recBlock, currBlock);
+				if (isRecBlockValid) {
+					System.out.println("Block Valid");
+					System.out.println("suspending existing thread");
+					// TODO : Stop mining thread
+					if (GlobalResources.env_vars.miningThread != null)
+						GlobalResources.env_vars.miningThread.suspend();
+
+					System.out.println("Adding block to block chain");
+					GlobalResources.env_vars.mainChain.addBlock(recBlock);
+					System.out.println("starting new thread");
+					//TODO: Start mining on new block received
+					Thread mine = new Thread(GlobalResources.env_vars.manager.getMiner());
+					mine.start();
+
+					GlobalResources.env_vars.miningThread = mine;
+
+				}
+			} 
+		}
+		else
+		{
+			Boolean isRecBlockValid = Block.isBlockValidIsolated(recBlock);
+			if (isRecBlockValid) {
 				System.out.println("Block Valid");
-				System.out.println("suspending existing thread");
+				System.out.println("suspending existing thread, if any");
 				// TODO : Stop mining thread
-				if(GlobalResources.env_vars.miningThread != null)
+				if (GlobalResources.env_vars.miningThread != null)
 					GlobalResources.env_vars.miningThread.suspend();
-				
+
 				System.out.println("Adding block to block chain");
 				GlobalResources.env_vars.mainChain.addBlock(recBlock);
 				System.out.println("starting new thread");
 				//TODO: Start mining on new block received
 				Thread mine = new Thread(GlobalResources.env_vars.manager.getMiner());
 				mine.start();
-				
+
 				GlobalResources.env_vars.miningThread = mine;
 
 			}

@@ -184,6 +184,8 @@ public class Work {
 //		System.out.println("************************************************************************************************\n");
 		proof.g = g;
 		proof.x = x;
+		proof.p = GlobalResources.env_vars.getP();
+		proof.q = GlobalResources.env_vars.getQ();
 		long endTime = System.currentTimeMillis();
 		long timeTaken = endTime-startTime;
 		System.out.println("Time Taken: "+ timeTaken/60000.0+ " minutes.");

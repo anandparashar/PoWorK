@@ -10,16 +10,16 @@ import network.NioServer;
 
 public class MiningManager{
 	
-	private Miner miner = new Miner(type.WORK);
+	private Miner miner = new Miner(type.KNOWLEDGE);
 	
 	public void mine(){
 		try{
 			
-			// TODO : Add logic to get BlockChain from peeers
+			// TODO : Add logic to get BlockChain from peers
 			
 			MessageProcessor processor = new MessageProcessor();
 			new Thread(processor).start();
-			NioServer server = new NioServer(InetAddress.getByName("192.168.0.23"), 1111, processor);
+			NioServer server = new NioServer(InetAddress.getByName("10.159.8.121"), 100, processor);
 			Thread tserver = new Thread(server);
 			tserver.start();
 					
@@ -35,10 +35,10 @@ public class MiningManager{
 			
 			GlobalResources.env_vars.manager = this;
 			
-			Thread mine = new Thread(miner);
-			mine.start();
-			
-			GlobalResources.env_vars.miningThread = mine;
+//			Thread mine = new Thread(miner);
+//			mine.start();
+//			
+//			GlobalResources.env_vars.miningThread = mine;
 			
 		}
 		catch(Exception e){

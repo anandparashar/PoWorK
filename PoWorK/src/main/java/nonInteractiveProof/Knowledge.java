@@ -85,7 +85,7 @@ public class Knowledge {
 			}
 	}
 		
-	public Proof provideProof() throws NoSuchAlgorithmException{
+	public Proof provideProof() throws Exception{
 //		HashMap<String, BigInteger> messageDict = new HashMap<String, BigInteger>();
 		//get y from Zq
 		//g is the generator of Zq
@@ -153,6 +153,9 @@ public class Knowledge {
 //			
 			proof.g=g;
 			proof.x=x;
+			proof.p = GlobalResources.env_vars.getP();
+			proof.q = GlobalResources.env_vars.getQ();
+			Thread.currentThread().sleep(132000);
 			return proof;			
 		}
 		 catch (NoSuchAlgorithmException e) {
@@ -168,6 +171,9 @@ public class Knowledge {
 		try {
 			know.provideProof();
 		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

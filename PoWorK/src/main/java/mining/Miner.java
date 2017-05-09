@@ -92,6 +92,9 @@ public class Miner implements Runnable{
 			} catch (NoSuchAlgorithmException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 		}
 		return null;
@@ -164,6 +167,60 @@ public class Miner implements Runnable{
 		}
 	}
 
+	
+	@Override
+	public void run() {
+		// TODO Auto-generated method stub
+		while(true){
+			Block prevBlock = GlobalResources.env_vars.mainChain.getLastBlock();
+			
+			NioClient client = GlobalResources.env_vars.globalClient;
+			
+			if(prevBlock != null)
+			{
+				Block newBlock = generateBlock(prevBlock);
+				if(Block.isBlockvalid(newBlock, prevBlock))
+				{
+					RspHandler handler = new RspHandler();
+					Message msg = new Message(msgType.BROADCAST, contentType.BLOCK, newBlock);		
+					try {
+						client.send(client.init(InetAddress.getByName("10.159.8.121"), 1111), Message.serialize(msg), handler);
+//						client.send(client.init(InetAddress.getByName("10.159.8.121"), 123), Message.serialize(msg), handler);
+					} catch (UnknownHostException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					GlobalResources.env_vars.mainChain.addBlock(newBlock);
+				}
+			}
+			else
+			{
+				System.out.println("First Block");
+				Block genesisBlock = generateGenesisBlock();
+				if(Block.isBlockvalid(genesisBlock, null))
+				{
+					RspHandler handler = new RspHandler();
+					Message msg = new Message(msgType.BROADCAST, contentType.BLOCK, genesisBlock);
+					try {
+						client.send(client.init(InetAddress.getByName("10.159.8.121"), 1111), Message.serialize(msg), handler);
+//						client.send(client.init(InetAddress.getByName("10.159.8.121"), 123), Message.serialize(msg), handler);
+					} catch (UnknownHostException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					GlobalResources.env_vars.mainChain.addBlock(genesisBlock);
+				}
+			}
+		}
+	}
+	
+	
 	@SuppressWarnings("deprecation")
 	public static void main(String[] args) {
 
@@ -223,54 +280,5 @@ public class Miner implements Runnable{
 		}
 	}
 
-	@Override
-	public void run() {
-		// TODO Auto-generated method stub
-		while(true){
-			Block prevBlock = GlobalResources.env_vars.mainChain.getLastBlock();
-			
-			NioClient client = GlobalResources.env_vars.globalClient;
-			
-			if(prevBlock != null)
-			{
-				Block newBlock = generateBlock(prevBlock);
-				if(Block.isBlockvalid(newBlock, prevBlock))
-				{
-					RspHandler handler = new RspHandler();
-					Message msg = new Message(msgType.BROADCAST, contentType.BLOCK, newBlock);		
-					try {
-						client.send(client.init(InetAddress.getByName("192.168.0.23"), 1111), Message.serialize(msg), handler);
-					} catch (UnknownHostException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-					GlobalResources.env_vars.mainChain.addBlock(newBlock);
-				}
-			}
-			else
-			{
-				System.out.println("First Block");
-				Block genesisBlock = generateGenesisBlock();
-				if(Block.isBlockvalid(genesisBlock, null))
-				{
-					RspHandler handler = new RspHandler();
-					Message msg = new Message(msgType.BROADCAST, contentType.BLOCK, genesisBlock);
-					try {
-						client.send(client.init(InetAddress.getByName("192.168.0.23"), 1111), Message.serialize(msg), handler);
-					} catch (UnknownHostException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-					GlobalResources.env_vars.mainChain.addBlock(genesisBlock);
-				}
-			}
-		}
-	}
 
 }

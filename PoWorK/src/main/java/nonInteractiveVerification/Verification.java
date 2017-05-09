@@ -7,7 +7,14 @@ import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
+import org.apfloat.Apfloat;
+import org.apfloat.ApfloatMath;
 
+import edu.biu.scapi.primitives.dlog.DlogGroup;
+import edu.biu.scapi.primitives.dlog.GroupElement;
+import edu.biu.scapi.primitives.dlog.ZpElementSendableData;
+import edu.biu.scapi.primitives.dlog.openSSL.OpenSSLDlogZpSafePrime;
+import edu.biu.scapi.securityLevel.Dlog;
 import globalResources.Env_Variables;
 import globalResources.GlobalResources;
 import nonInteractiveProof.Proof;
@@ -17,28 +24,56 @@ import nonInteractiveProof.Proof;
  *
  */
 public class Verification {
-	private BigInteger c, cTilda, r, puz, sol, throttle, g, x;
+	private BigInteger c, cTilda, r, puz, sol, throttle, g, x, p, q;
 	private BigDecimal a;
 	private MessageDigest sha256digest;
+	private DlogGroup dlog ;
 	
 	public Verification(Proof proof){
-//		System.out.println("***********");
+		System.out.println("***********");
 		a= proof.a;
-//		System.out.println("a: "+a);
+		System.out.println("a: "+a);
 		c= proof.c;
-//		System.out.println("c: "+c);
+		System.out.println("c: "+c);
 		cTilda = proof.cTilda;
-//		System.out.println("cTilda: "+cTilda);
+		System.out.println("cTilda: "+cTilda);
 		r= proof.r;
-//		System.out.println("r: "+r);
+		System.out.println("r: "+r);
 		puz= proof.puz;
-//		System.out.println("puz: "+puz);
+		System.out.println("puz: "+puz);
 		sol = proof.sol;
-//		System.out.println("sol: "+sol);
+		System.out.println("sol: "+sol);
 		g=proof.g;
+		System.out.println("g: "+g);
 		x=proof.x;
+		System.out.println("x: "+x);
+		p = proof.p;
+		System.out.println("p: "+p);
+		q = proof.q;
 		throttle = GlobalResources.env_vars.getThrottle();
 //		System.out.println("***********");
+		dlog = new OpenSSLDlogZpSafePrime(q.toString(), g.toString(), p.toString());
+	}
+	
+	private BigInteger getIntegerFromGroupELement(GroupElement gElement){
+		try{
+		return ((ZpElementSendableData)(gElement.generateSendableData())).getX();
+			//return new BigInteger(dlog.decodeGroupElementToByteArray(gElement));
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	public BigInteger ExponentiateMToN(GroupElement x, BigInteger y){
+		GroupElement exp= dlog.exponentiate(x, y);
+		return getIntegerFromGroupELement(exp);
+	}
+	
+	public GroupElement convertToGroupElement(BigInteger ele){
+		return dlog.generateElement(false, ele);
 	}
 	
 	/*
@@ -118,22 +153,22 @@ public class Verification {
 					{
 						System.out.println("puz=H(sol)");
 						
-						BigInteger lhs = GlobalResources.env_vars.ExponentiateMToN(GlobalResources.env_vars.convertToGroupElement(g), r); //g^r
-//						System.out.println("g^r :"+lhs);
+						BigInteger lhs = ExponentiateMToN(GlobalResources.env_vars.convertToGroupElement(g), r); //g^r
+						System.out.println("g^r :"+lhs);
 						
-						BigInteger xRaisedcTilda=GlobalResources.env_vars.ExponentiateMToN(GlobalResources.env_vars.convertToGroupElement(x), cTilda);
-//						System.out.println("xraisedCTilda: "+ xRaisedcTilda);
-//						System.out.println("xraisedCTilda Dec: "+ new BigDecimal(xRaisedcTilda));
+						BigInteger xRaisedcTilda=ExponentiateMToN(GlobalResources.env_vars.convertToGroupElement(x), cTilda);
+						System.out.println("xraisedCTilda: "+ xRaisedcTilda);
+						System.out.println("xraisedCTilda Dec: "+ new BigDecimal(xRaisedcTilda));
 						BigDecimal rhs = a.multiply(new BigDecimal(xRaisedcTilda));
 						
-//						System.out.println("a * x^cTilda: "+rhs);
+						System.out.println("a * x^cTilda: "+rhs);
 						
-						BigDecimal rhsrem=rhs.remainder(new BigDecimal(GlobalResources.env_vars.getP()));
-//						System.out.println("(a * x^cTilda) rem:"+rhsrem);
+						BigDecimal rhsrem=rhs.remainder(new BigDecimal(p));
+						System.out.println("(a * x^cTilda) rem:"+rhsrem);
 						
 						MathContext mc = new MathContext(10); 
 						BigInteger rhsRounded = rhsrem.round(mc).toBigInteger();
-//						System.out.println("Rounded: "+rhsRounded);
+						System.out.println("Rounded: "+rhsRounded);
 						
 						if(lhs.equals(rhsRounded))
 						{
@@ -158,5 +193,21 @@ public class Verification {
 			return false;
 		}
 	}
+	
+	
+	public static Apfloat pow(Apfloat base, Apfloat exponent) {
+		  
+		  return ApfloatMath.pow(base, exponent);
+		}
+	
+	public static void main (String args[])
+	{
+//		Apfloat p = pow(new Apfloat(new BigInteger("137140")), new Apfloat(new BigInteger("8279577052126148005872130454540812245912314573595538176583819678518404235512")));
+//		System.out.println(p.toString());
+		
+		BigInteger a = BigInteger.TEN;
+		System.out.println(a.toString());
+	}
+
 
 }
