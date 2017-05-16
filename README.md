@@ -1,6 +1,6 @@
 # PoWorK
 Implementation of Indistinguishable Proof of Work or Knowledge protocol.
-Use the Proof of Work and Proof of Knowledge test cases to check the PoW and PoK generation and verification. The execution is quite verbose and prints the steps in the generation annd verification of the proofs.
+Use the Proof of Work and Proof of Knowledge test cases to check the PoW and PoK generation and verification. The execution is quite verbose and prints the steps in the generation annd verification of the proofs. Run MiningManager.java to run the mining node.
 
 To run a full set-up kindly change the following lines in the code,
 Miner.java: lines 187 and 208
